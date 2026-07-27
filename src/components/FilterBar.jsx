@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, SlidersHorizontal, RotateCcw, ChevronDown, ChevronUp, Filter, Loader2 } from 'lucide-react';
+import { Search, SlidersHorizontal, RotateCcw, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 import * as api from '../services/api';
 
 export default function FilterBar({
@@ -7,7 +7,6 @@ export default function FilterBar({
   filters,
   setFilters,
   resetFilters,
-  onApply,
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [platforms, setPlatforms] = useState([]);
@@ -240,28 +239,19 @@ export default function FilterBar({
 
   // Desktop: always visible sidebar
   const desktopFilters = (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-5 h-fit xl:sticky xl:top-6 hidden xl:block w-64 flex-shrink-0">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-5 h-fit xl:sticky xl:top-[72px] hidden xl:block w-64 flex-shrink-0">
       <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <div className="flex items-center space-x-2 text-white font-semibold">
           <SlidersHorizontal className="w-5 h-5 text-indigo-400" />
           <span>Filtros</span>
         </div>
-        <div className="flex items-center space-x-1">
-          <button
-            onClick={() => onApply(filters)}
-            className="text-indigo-400 hover:text-indigo-300 p-1 hover:bg-indigo-500/10 rounded transition"
-            title="Aplicar filtros"
-          >
-            <Filter className="w-3.5 h-3.5" />
-          </button>
-          <button
-            onClick={resetFilters}
-            className="text-zinc-500 hover:text-white p-1 hover:bg-zinc-800 rounded transition"
-            title="Limpar todos os filtros"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <button
+          onClick={resetFilters}
+          className="text-zinc-500 hover:text-white p-1 hover:bg-zinc-800 rounded transition"
+          title="Limpar todos os filtros"
+        >
+          <RotateCcw className="w-3.5 h-3.5" />
+        </button>
       </div>
       {filterContent}
     </div>
@@ -277,8 +267,8 @@ export default function FilterBar({
         }`}
       >
         <div className="flex items-center space-x-3">
-          <Filter className="w-4 h-4 text-indigo-400" />
-          <span className="text-sm font-semibold text-white">Filtros Avançados</span>
+          <SlidersHorizontal className="w-4 h-4 text-indigo-400" />
+          <span className="text-sm font-semibold text-white">Filtros</span>
           {activeCount > 0 && (
             <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/30">
               {activeCount} ativos
@@ -286,20 +276,13 @@ export default function FilterBar({
           )}
         </div>
         <div className="flex items-center space-x-1">
-          <button
-            onClick={(e) => { e.stopPropagation(); onApply(filters); setIsOpen(false); }}
-            className="text-indigo-400 hover:text-indigo-300 p-1 hover:bg-indigo-500/10 rounded transition"
-            title="Aplicar filtros"
-          >
-            <Filter className="w-3.5 h-3.5" />
-          </button>
-          <button
+          <span
             onClick={(e) => { e.stopPropagation(); resetFilters(); }}
-            className="text-zinc-500 hover:text-white p-1 hover:bg-zinc-800 rounded transition"
+            className="text-zinc-500 hover:text-white p-1 hover:bg-zinc-800 rounded transition cursor-pointer"
             title="Limpar filtros"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-          </button>
+          </span>
           {isOpen ? <ChevronUp className="w-4 h-4 text-zinc-400" /> : <ChevronDown className="w-4 h-4 text-zinc-400" />}
         </div>
       </button>

@@ -2,9 +2,9 @@ import React from 'react';
 import { Wrench, Clock, Star, Gamepad2, Keyboard, Users } from 'lucide-react';
 
 function getCoopLabel(coopPlayers) {
-  if (!coopPlayers || coopPlayers === '1 (Singleplayer)') return null;
+  if (!coopPlayers || coopPlayers === '1 Jogador') return null;
   if (coopPlayers === 'Até 4 Jogadores') return '+2';
-  if (coopPlayers === 'Multiplayer') return '+4';
+  if (coopPlayers === 'Mais de 4 Jogadores') return '+4';
   const match = coopPlayers.match(/(\d+)/);
   if (match) {
     const num = parseInt(match[1], 10);

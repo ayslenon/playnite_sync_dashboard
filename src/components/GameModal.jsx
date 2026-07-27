@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Wrench, Save, Gamepad2, Keyboard, Clock, Users, Monitor, Search, Eye, EyeOff, AlertTriangle, Check, HardDrive } from 'lucide-react';
+import { X, Wrench, Save, Gamepad2, Keyboard, Clock, Users, Monitor, Search, Eye, EyeOff, AlertTriangle, Check, HardDrive, Plus } from 'lucide-react';
 
 const EMPTY_GAME = {
   title: '',
@@ -18,9 +18,9 @@ const EMPTY_GAME = {
   notes: '',
   interest_rating: 3,
   replay_score: 3,
-  coop_players: '1 (Singleplayer)',
+  coop_players: '1 Jogador',
   coop_type: ['Um Jogador'],
-  coop_screen_type: 'tela inteira',
+  coop_screen_type: 'Tela Inteira',
   input_recommendation: 'Controle',
   must_test: false,
 };
@@ -169,10 +169,10 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
   ];
 
   const coopPlayersLabels = {
-    '1 (Singleplayer)': 'Um Jogador',
+    '1 Jogador': '1 Jogador',
     '2 Jogadores': '2 Jogadores',
     'Até 4 Jogadores': 'Até 4 Jogadores',
-    'Multiplayer': 'Multiplayer (Vários)',
+    'Mais de 4 Jogadores': 'Mais de 4 Jogadores',
   };
 
   return (
@@ -249,7 +249,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                     type="text"
                     value={formData.title}
                     onChange={(e) => handleChange('title', e.target.value)}
-                    className={`flex-1 bg-zinc-950 border rounded-lg px-3 py-2 text-sm text-white outline-none transition ${
+                    className={`flex-1 bg-zinc-950 border rounded-lg px-3 py-2 text-sm text-white outline-none transition h-9 ${
                       errors.title ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500/30' : 'border-zinc-800 focus:border-indigo-500'
                     }`}
                     placeholder="Ex: The Witcher 3"
@@ -257,7 +257,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                   <button
                     type="button"
                     title="Buscar automaticamente metadados (em breve)"
-                    className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-lg transition flex items-center"
+                    className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-lg transition flex items-center h-9"
                   >
                     <Search className="w-4 h-4" />
                   </button>
@@ -283,7 +283,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                   <input
                     id="genre-input"
                     type="text"
-                    className={`flex-1 bg-zinc-950 border rounded-lg px-3 py-2 text-sm text-white outline-none transition ${
+                    className={`flex-1 bg-zinc-950 border rounded-lg px-3 py-2 text-sm text-white outline-none transition h-9 ${
                       errors.genres ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500/30' : 'border-zinc-800 focus:border-indigo-500'
                     }`}
                     placeholder="Adicionar gênero e pressionar +"
@@ -291,9 +291,9 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                   />
                   <button
                     onClick={() => toggleGenre()}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold px-3 rounded-lg transition"
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-2 rounded-lg transition h-9 flex items-center justify-center"
                   >
-                    +
+                    <Plus className="w-4 h-4" />
                   </button>
                 </div>
                 {errors.genres && <p className="text-red-400 text-xs mt-1">{errors.genres}</p>}
@@ -324,23 +324,22 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
               </div>
 
               {/* Interest + Must Test + Platform (same row) */}
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {/* Interest */}
                 <div className="space-y-1.5">
-                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Vontade de Jogar</label>
-                  <div className={`flex items-center space-x-1 bg-zinc-950 border py-2.5 px-2 rounded-lg ${
+                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Vontade</label>
+                  <div className={`flex items-center space-x-0.1 bg-zinc-950 border py-2.5 px-2 rounded-lg ${
                     errors.interest_rating ? 'border-red-500 ring-1 ring-red-500/30' : 'border-zinc-800'
                   }`}>
                     {[1, 2, 3, 4, 5].map(star => (
                       <button
                         key={star}
                         onClick={() => handleChange('interest_rating', star)}
-                        className={`leading-none text-lg transition ${star <= formData.interest_rating ? 'text-amber-400 scale-110' : 'text-zinc-700 hover:text-zinc-500'}`}
+                        className={`leading-none text-lg transition ${star <= formData.interest_rating ? 'text-amber-400 scale-90' : 'text-zinc-700 hover:text-zinc-500 scale-80'}`}
                       >
                         ★
                       </button>
                     ))}
-                    <span className="text-xs text-zinc-500 ml-auto">{formData.interest_rating}/5</span>
                   </div>
                   {errors.interest_rating && <p className="text-red-400 text-xs mt-1">{errors.interest_rating}</p>}
                 </div>
@@ -413,7 +412,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                 </h4>
                 <div className="grid grid-cols-4 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Main Story</label>
+                    <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Principal</label>
                     <input
                       type="number"
                       value={formData.hltb_main || 0}
@@ -422,7 +421,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Main + Extra</label>
+                    <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Extra</label>
                     <input
                       type="number"
                       value={formData.hltb_main_extra || 0}
@@ -551,7 +550,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
               <div className="space-y-1.5">
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Jogadores</label>
                 <select
-                  value={formData.coop_players || '1 (Singleplayer)'}
+                  value={formData.coop_players || '1 Jogador'}
                   onChange={(e) => handleChange('coop_players', e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
                 >
@@ -564,7 +563,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
               <div className="space-y-1.5">
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
                   Tipo
-                  {formData.coop_players !== '1 (Singleplayer)' && (
+                  {formData.coop_players !== '1 Jogador' && (
                     <span className="text-zinc-600 font-normal lowercase ml-1">(selecione um ou mais)</span>
                   )}
                 </label>
@@ -579,7 +578,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                           selected
                             ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400'
                             : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'
-                        } ${formData.coop_players === '1 (Singleplayer)' ? 'opacity-40 pointer-events-none' : ''}`}
+                        } ${formData.coop_players === '1 Jogador' ? 'opacity-40 pointer-events-none' : ''}`}
                       >
                         {type}
                       </button>
@@ -591,13 +590,13 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
               <div className="space-y-1.5">
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Tela</label>
                 <select
-                  value={formData.coop_screen_type || 'tela inteira'}
+                  value={formData.coop_screen_type || 'Tela Inteira'}
                   onChange={(e) => handleChange('coop_screen_type', e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
                 >
-                  <option value="tela inteira">Tela Inteira</option>
-                  <option value="tela dividida">Tela Dividida</option>
-                  <option value="versus">Versus</option>
+                  <option value="Tela Inteira">Tela Inteira</option>
+                  <option value="Tela Dividida">Tela Dividida</option>
+                  <option value="Versus">Versus</option>
                 </select>
               </div>
             </div>

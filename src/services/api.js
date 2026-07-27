@@ -27,6 +27,10 @@ function toApi(game) {
   return d;
 }
 
+function join(arr) {
+  return Array.isArray(arr) && arr.length > 0 ? arr.join(',') : undefined;
+}
+
 function fromApi(game) {
   return { ...game };
 }
@@ -36,9 +40,19 @@ export async function fetchGames(params = {}) {
   if (params.limit) qs.set('limit', params.limit);
   if (params.offset) qs.set('offset', params.offset);
   if (params.search) qs.set('search', params.search);
-  if (params.platform_id) qs.set('platform_id', params.platform_id);
-  if (params.status) qs.set('status', params.status);
-  if (params.genre_id) qs.set('genre_id', params.genre_id);
+  const status = join(params.status);
+  if (status) qs.set('status', status);
+  const platform = join(params.platform);
+  if (platform) qs.set('platform', platform);
+  const genre = join(params.genre);
+  if (genre) qs.set('genre', genre);
+  const hds = join(params.hds);
+  if (hds) qs.set('hds', hds);
+  const coop_type = join(params.coop_type);
+  if (coop_type) qs.set('coop_type', coop_type);
+  if (params.interest_min) qs.set('interest_min', params.interest_min);
+  if (params.interest_max) qs.set('interest_max', params.interest_max);
+  if (params.sort) qs.set('sort', params.sort);
   const data = await request(`/api/games?${qs.toString()}`);
   return { ...data, items: data.items.map(fromApi) };
 }
@@ -75,4 +89,18 @@ export async function fetchPlatforms() {
 
 export async function fetchStorageDevices() {
   return request('/api/storage-devices');
+}
+
+export async function exportXlsx() {
+  const url = `${BASE_URL}/api/export/xlsx`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const blob = await res.blob();
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'biblioteca_jogos.xlsx';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(link.href);
 }
