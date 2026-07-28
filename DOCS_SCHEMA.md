@@ -74,9 +74,9 @@ Este documento descreve a estrutura JSON atual de cada jogo, compatível com a A
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `hltb_main` | `number` | Horas estimadas (HowLongToBeat) — história principal |
-| `hltb_main_extra` | `number` | História + extras |
-| `hltb_full` | `number` | 100% (completionist) |
+| `hltb_main` | `number` | Horas estimadas (HowLongToBeat) — história principal. Arredondado via `ceil(x*2)/2` |
+| `hltb_main_extra` | `number` | História + extras. Arredondado via `ceil(x*2)/2` |
+| `hltb_full` | `number` | 100% (completionist). Arredondado via `ceil(x*2)/2` |
 | `playtime_seconds` | `number` | Tempo real jogado (segundos). Exibido como horas no card |
 | `finish_hours` | `number` \| `null` | Horas registradas ao finalizar |
 | `finish_date` | `string` \| `null` | ISO 8601 |

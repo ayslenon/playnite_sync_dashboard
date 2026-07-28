@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, Wrench, Save, Gamepad2, Keyboard, Clock, Users, Monitor, Search, Eye, EyeOff, AlertTriangle, Check, HardDrive, Plus } from 'lucide-react';
+import { X, Wrench, Save, Gamepad2, Keyboard, Clock, Users, Monitor, Search, Eye, EyeOff, AlertTriangle, Check, HardDrive, Plus, Loader2 } from 'lucide-react';
+import { useToast } from './Toast';
 
 const EMPTY_GAME = {
   title: '',
@@ -25,12 +26,15 @@ const EMPTY_GAME = {
   must_test: false,
 };
 
-export default function GameModal({ games, game, isOpen, onClose, isEditing: _, onSave, onDelete }) {
+export default function GameModal({ games, game, isOpen, onClose, isEditing: _, onSave, onDelete, onHltbSearch }) {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState(game || { ...EMPTY_GAME });
   const [activeTab, setActiveTab] = useState('general');
   const [errors, setErrors] = useState({});
   const [confirm, setConfirm] = useState(null);
   const [hdMode, setHdMode] = useState('existing');
+  const [searchingHltb, setSearchingHltb] = useState(false);
+  const [hltbError, setHltbError] = useState(null);
 
   const existingHds = Array.from(
     new Set((games || []).map(g => g.storage_device?.name).filter(Boolean))
@@ -52,9 +56,37 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
     return errs;
   };
 
+  const handleHltbSearch = async () => {
+    const title = formData.title?.trim();
+    if (!title || !onHltbSearch || searchingHltb) return;
+    setSearchingHltb(true);
+    setHltbError(null);
+    try {
+      const result = await onHltbSearch(title);
+      if (result) {
+        setFormData(prev => ({
+          ...prev,
+          hltb_main: result.hltb_main ?? prev.hltb_main,
+          hltb_main_extra: result.hltb_main_extra ?? prev.hltb_main_extra,
+          hltb_full: result.hltb_full ?? prev.hltb_full,
+          cover_url: result.cover_url ?? prev.cover_url,
+        }));
+        showToast(`Dados HLTB encontrados para "${result.title}"`, 'success');
+      }
+    } catch (err) {
+      const msg = err.message || '';
+      const friendly = msg.includes('No HLTB data found') ? `Nenhum dado encontrado no HLTB para '${title}'` : msg;
+      setHltbError(friendly);
+      showToast(friendly, 'error');
+    } finally {
+      setSearchingHltb(false);
+    }
+  };
+
   React.useEffect(() => {
     setErrors({});
     setConfirm(null);
+    setHltbError(null);
     if (game && isOpen) {
       setFormData(JSON.parse(JSON.stringify(game)));
       const hds = Array.from(new Set((games || []).map(g => g.storage_device?.name).filter(Boolean)));
@@ -256,13 +288,20 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                   />
                   <button
                     type="button"
-                    title="Buscar automaticamente metadados (em breve)"
-                    className="px-3 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white rounded-lg transition flex items-center h-9"
+                    onClick={handleHltbSearch}
+                    disabled={searchingHltb || !formData.title?.trim()}
+                    title="Buscar HLTB"
+                    className={`px-3 py-2 rounded-lg transition flex items-center h-9 ${
+                      searchingHltb
+                        ? 'bg-indigo-600/50 text-indigo-300 cursor-wait'
+                        : 'bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white'
+                    }`}
                   >
-                    <Search className="w-4 h-4" />
+                    {searchingHltb ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                   </button>
                 </div>
                 {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
+                {hltbError && <p className="text-amber-400 text-xs mt-1">HLTB: {hltbError}</p>}
               </div>
 
               {/* Genres */}

@@ -6,6 +6,7 @@ import GameCard from '../components/GameCard';
 import GameRow from '../components/GameRow';
 import GameModal from '../components/GameModal';
 import SortDropdown from '../components/SortDropdown';
+import { useToast } from '../components/Toast';
 
 const DEFAULT_FILTERS = {
   search: '',
@@ -31,6 +32,7 @@ function scrollToTop() {
 }
 
 export default function Library() {
+  const { showToast } = useToast();
   const [games, setGames] = useState([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -48,8 +50,14 @@ export default function Library() {
   const loadedRef = useRef(false);
 
   const loadChunk = useCallback(async (offset) => {
-    const data = await api.fetchGames({ limit: CHUNK_SIZE, offset });
-    return data;
+    try {
+      const data = await api.fetchGames({ limit: CHUNK_SIZE, offset });
+      return data;
+    } catch (err) {
+      console.warn(`Chunk at offset ${offset} failed:`, err.message);
+      if (offset === 0) throw err;
+      return { items: [], total: 0, has_more: false };
+    }
   }, []);
 
   const loadAll = useCallback(async () => {
@@ -67,9 +75,16 @@ export default function Library() {
         setPrefetchProgress({ loaded: data.items.length, total: data.total });
         const allGames = [...data.items];
         let offset = CHUNK_SIZE;
+        let consecutiveFails = 0;
 
-        while (offset < data.total) {
+        while (offset < data.total && consecutiveFails < 3) {
           const chunk = await loadChunk(offset);
+          if (chunk.items.length === 0) {
+            consecutiveFails++;
+            offset += CHUNK_SIZE;
+            continue;
+          }
+          consecutiveFails = 0;
           allGames.push(...chunk.items);
           offset += CHUNK_SIZE;
           setGames([...allGames]);
@@ -83,18 +98,39 @@ export default function Library() {
     } catch (err) {
       console.warn('API unavailable:', err.message);
       setApiError(err.message);
+      showToast(err.message || 'Erro ao carregar jogos', 'error', 6000);
     } finally {
       setLoading(false);
     }
-  }, [loadChunk]);
+  }, [loadChunk, showToast]);
 
   useEffect(() => { loadAll(); }, [loadAll]);
 
-  const reloadAll = useCallback(async () => {
-    loadedRef.current = false;
-    setGames([]);
-    await loadAll();
-  }, [loadAll]);
+  const reloadSilent = useCallback(async () => {
+    try {
+      const data = await loadChunk(0);
+      const allGames = [...data.items];
+      let offset = CHUNK_SIZE;
+      let consecutiveFails = 0;
+
+      while (offset < data.total && consecutiveFails < 3) {
+        const chunk = await loadChunk(offset);
+        if (chunk.items.length === 0) {
+          consecutiveFails++;
+          offset += CHUNK_SIZE;
+          continue;
+        }
+        consecutiveFails = 0;
+        allGames.push(...chunk.items);
+        offset += CHUNK_SIZE;
+      }
+
+      setGames(allGames);
+      setTotal(data.total);
+    } catch {
+      // silent — toast already shown by caller
+    }
+  }, [loadChunk]);
 
   const loadMoreDisplay = useCallback(() => {
     setDisplayCount(prev => prev + DISPLAY_STEP);
@@ -260,32 +296,33 @@ export default function Library() {
   };
 
   const handleSave = async (formData) => {
+    const game = selectedGame;
+    const isUpdate = !!game;
+    setModalOpen(false);
+    setSelectedGame(null);
     try {
-      setApiError(null);
-      if (selectedGame) {
-        await api.updateGame(selectedGame.id, formData);
+      if (isUpdate) {
+        await api.updateGame(game.id, formData);
       } else {
         await api.createGame(formData);
       }
-      await reloadAll();
+      showToast(isUpdate ? 'Jogo atualizado com sucesso!' : 'Jogo criado com sucesso!', 'success');
+      await reloadSilent();
     } catch (err) {
-      setApiError(err.message);
-      return;
+      showToast(err.message || 'Erro ao salvar jogo', 'error');
     }
-    setModalOpen(false);
-    setSelectedGame(null);
   };
 
   const handleDelete = async (id) => {
-    try {
-      setApiError(null);
-      await api.deleteGame(id);
-      await reloadAll();
-    } catch (err) {
-      setApiError(err.message);
-    }
     setModalOpen(false);
     setSelectedGame(null);
+    try {
+      await api.deleteGame(id);
+      showToast('Jogo excluído com sucesso!', 'success');
+      await reloadSilent();
+    } catch (err) {
+      showToast(err.message || 'Erro ao excluir jogo', 'error');
+    }
   };
 
   const resetFilters = () => {
@@ -394,6 +431,23 @@ export default function Library() {
                 onChange={(val) => setFilters(prev => ({ ...prev, sort: val }))}
               />
 
+              {/* Export XLSX */}
+              <button
+                onClick={async () => {
+                  try {
+                    await api.exportXlsx();
+                    showToast('Planilha exportada com sucesso!', 'success');
+                  } catch (err) {
+                    showToast(err.message || 'Erro ao exportar planilha', 'error');
+                  }
+                }}
+                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white text-sm font-bold px-3 py-2 rounded-lg transition flex items-center justify-center sm:space-x-2 h-9"
+                title="Exportar planilha"
+              >
+                <Download className="w-4 h-4 flex-shrink-0" />
+                <span className="hidden sm:inline">XLSX</span>
+              </button>
+
               {/* Add New */}
               <button
                 onClick={handleAddNew}
@@ -401,16 +455,6 @@ export default function Library() {
               >
                 <Plus className="w-4 h-4 flex-shrink-0" />
                 <span className="hidden sm:inline">Novo Jogo</span>
-              </button>
-
-              {/* Export XLSX */}
-              <button
-                onClick={() => api.exportXlsx()}
-                className="bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white text-sm font-bold px-3 py-2 rounded-lg transition flex items-center justify-center sm:space-x-2 h-9"
-                title="Exportar planilha"
-              >
-                <Download className="w-4 h-4 flex-shrink-0" />
-                <span className="hidden sm:inline">XLSX</span>
               </button>
             </div>
           </div>
@@ -780,6 +824,7 @@ export default function Library() {
           isEditing={isEditing}
           onSave={handleSave}
           onDelete={handleDelete}
+          onHltbSearch={api.searchHltb}
         />
 
         {/* Scroll to Top */}

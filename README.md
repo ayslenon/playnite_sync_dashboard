@@ -1,4 +1,4 @@
-# Game Library Dashboard v1.1.0
+# Game Library Dashboard v1.1.1
 
 Dashboard pessoal de gerenciamento de biblioteca de jogos com visualização em grid/tabela, filtros combináveis, ordenação multi-campo e cadastro completo de jogos.
 
@@ -41,11 +41,13 @@ dashboard/
 │   └── icons.svg
 ├── src/
 │   ├── components/
+│   │   ├── ErrorBoundary.jsx  # Captura de crashes React com fallback
 │   │   ├── FilterBar.jsx      # Sidebar/dropdown de filtros avançados
 │   │   ├── GameCard.jsx       # Card para visualização em grid
 │   │   ├── GameModal.jsx      # Modal de adicionar/editar jogo (3 abas)
 │   │   ├── GameRow.jsx        # Linha para visualização em tabela
-│   │   └── SortDropdown.jsx   # Popover de ordenação multi-campo no header
+│   │   ├── SortDropdown.jsx   # Popover de ordenação multi-campo no header
+│   │   └── Toast.jsx          # ToastProvider + useToast hook
 │   ├── pages/
 │   │   └── Library.jsx        # Página principal com toda a lógica
 │   ├── services/
@@ -102,13 +104,21 @@ dashboard/
 ### Carregamento
 
 - **Prefetch em background**: busca chunks de 120 jogos sequencialmente até ter o dataset completo
+- Falha em chunks isoladas não interrompe o prefetch (até 3 falhas consecutivas toleradas)
 - Indicador de progresso no header ("Carregando X de Y jogos...")
 - Loader centralizado na área da grid (não esconde header/filtros)
+
+### Toast & Feedback
+
+- **ToastProvider**: sistema de notificações não-bloqueante no canto superior direito
+- Toasts com auto-dismiss (3.5s), variantes success/error/info, animação slide-in
+- **Ações imediatas**: ao salvar/excluir jogo, modal fecha na hora, toast aparece e reload ocorre em background sem flash na grid
+- **Export XLSX** com toast de sucesso/erro
 
 ### Cache
 
 - Imagens com `loading="lazy"` nativo do browser
-- Backend configurado com Cache-Control (60s para dados, 1h para catálogos, 1 ano para covers)
+- Backend configurado com Cache-Control (no-cache para dados, 1h para catálogos, 1 ano para covers)
 
 ## Dados
 
@@ -125,8 +135,11 @@ O dashboard carrega dados do backend FastAPI (`http://localhost:8000`). Sem fall
 ## Melhorias Futuras
 
 - [x] **Exportar planilha XLSX**: endpoint no backend + botão de download
+- [x] **Error Boundary**: componente que captura crashes e exibe fallback com "Tentar novamente"
+- [x] **Fetch resiliente**: timeout de 15s, tratamento de NetworkError, prefetch tolerante a falhas
+- [x] **Busca HLTB**: botão no modal preenche automaticamente horas estimadas e capa
 - [ ] **Sincronização Playnite**: bidirecional entre servidor e Playnite
-- [ ] **Busca automática de metadados**: integração com IGDB, RAWG, SteamGridDB e HowLongToBeat
+- [ ] **Busca IGDB/RAWG**: metadados adicionais (capa, background, gêneros)
 - [ ] **Autenticação**: API key simples para acesso remoto
 - [ ] **Gráficos e estatísticas**: dashboard com Recharts mostrando distribuição de gêneros, plataformas, horas totais
 - [ ] **Testes**: adicionar vitest para testes unitários nos filtros e componentes

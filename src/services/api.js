@@ -1,16 +1,33 @@
 const BASE_URL = 'http://localhost:8000';
+const TIMEOUT_MS = 15000;
 
 async function request(path, options = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
   const url = `${BASE_URL}${path}`;
-  const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.detail || `HTTP ${res.status}`);
+  try {
+    const res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json', ...options.headers },
+      signal: controller.signal,
+      ...options,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || `Erro ${res.status} — ${res.statusText}`);
+    }
+    return res.json();
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Tempo limite excedido — servidor demorou a responder');
+    }
+    if (err.message === 'Failed to fetch' || err.message.includes('NetworkError')) {
+      throw new Error('Servidor indisponível — verifique se o backend está rodando');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
   }
-  return res.json();
 }
 
 function toApi(game) {
@@ -37,6 +54,7 @@ function fromApi(game) {
 
 export async function fetchGames(params = {}) {
   const qs = new URLSearchParams();
+  qs.set('_t', Date.now());
   if (params.limit) qs.set('limit', params.limit);
   if (params.offset) qs.set('offset', params.offset);
   if (params.search) qs.set('search', params.search);
@@ -92,15 +110,40 @@ export async function fetchStorageDevices() {
 }
 
 export async function exportXlsx() {
-  const url = `${BASE_URL}/api/export/xlsx`;
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const blob = await res.blob();
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'biblioteca_jogos.xlsx';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(link.href);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+  try {
+    const url = `${BASE_URL}/api/export/xlsx`;
+    const res = await fetch(url, { signal: controller.signal });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.detail || `Erro ${res.status} ao exportar planilha`);
+    }
+    const blob = await res.blob();
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'biblioteca_jogos.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  } catch (err) {
+    if (err.name === 'AbortError') throw new Error('Tempo limite excedido ao exportar');
+    if (err.message === 'Failed to fetch' || err.message.includes('NetworkError')) throw new Error('Servidor indisponível — não foi possível exportar');
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+export async function searchHltb(title) {
+  return request(`/api/metadata/hltb?title=${encodeURIComponent(title)}`);
+}
+
+export async function batchCreateGames(games) {
+  return request('/api/games/batch', {
+    method: 'POST',
+    body: JSON.stringify({ games: games.map(toApi) }),
+  });
 }
