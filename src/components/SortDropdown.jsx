@@ -69,7 +69,7 @@ export default function SortDropdown({ sort, onChange }) {
         <ArrowUpDown className="w-3.5 h-3.5 flex-shrink-0" />
         <span className="hidden sm:inline">Ordenar</span>
         {sort.length > 0 && (
-          <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded-full">
+          <span className="hidden sm:inline text-[10px] font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded-full">
             {sort.length}
           </span>
         )}

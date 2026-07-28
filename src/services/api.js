@@ -1,11 +1,16 @@
-const BASE_URL = 'http://localhost:8000';
+const getBaseUrl = () => `http://${window.location.hostname}:8000`;
 const TIMEOUT_MS = 15000;
+
+function absUrl(path) {
+  if (!path || path.startsWith('http')) return path;
+  return `${getBaseUrl()}${path}`;
+}
 
 async function request(path, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
-  const url = `${BASE_URL}${path}`;
+  const url = `${getBaseUrl()}${path}`;
   try {
     const res = await fetch(url, {
       headers: { 'Content-Type': 'application/json', ...options.headers },
@@ -49,7 +54,11 @@ function join(arr) {
 }
 
 function fromApi(game) {
-  return { ...game };
+  return {
+    ...game,
+    cover_url: absUrl(game.cover_url),
+    background_url: absUrl(game.background_url),
+  };
 }
 
 export async function fetchGames(params = {}) {
@@ -114,7 +123,7 @@ export async function exportXlsx() {
   const timeout = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const url = `${BASE_URL}/api/export/xlsx`;
+    const url = `${getBaseUrl()}/api/export/xlsx`;
     const res = await fetch(url, { signal: controller.signal });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));

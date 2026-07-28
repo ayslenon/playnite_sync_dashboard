@@ -586,7 +586,7 @@ export default function Library() {
           >
             <div className="flex items-center space-x-3">
               <div className={`p-2.5 rounded-lg relative ${inputRecActive ? 'bg-sky-500/20 text-sky-400' : 'bg-sky-500/10 text-sky-400'}`}>
-                <Gamepad2 className="w-5 h-5" />
+                {filters.inputRec === 'Teclado/Mouse' ? <Keyboard className="w-5 h-5" /> : <Gamepad2 className="w-5 h-5" />}
                 <span className="absolute -top-2 -right-2 w-5 h-5 bg-sky-800/70 rounded-full flex items-center justify-center text-[10px] font-extrabold text-sky-400 shadow-sm">
                   {inputFilteredCount}
                 </span>

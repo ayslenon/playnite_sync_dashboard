@@ -1,4 +1,4 @@
-# Game Library Dashboard v1.1.1
+# Game Library Dashboard v1.2.1
 
 Dashboard pessoal de gerenciamento de biblioteca de jogos com visualização em grid/tabela, filtros combináveis, ordenação multi-campo e cadastro completo de jogos.
 
@@ -131,6 +131,19 @@ O dashboard carrega dados do backend FastAPI (`http://localhost:8000`). Sem fall
 - **Responsivo**: funciona de 320px a 4K, com breakpoints inteligentes
 - **Performance**: `useMemo` para filtros e ordenação client-side, lazy loading de imagens, prefetch em background
 - **UX refinada**: header sticky com ações sempre visíveis, scroll infinito, botão de load more fallback, modais de confirmação
+
+## Changelog
+
+### v1.2.1
+- Cobertura de capas corrigida: diretório de covers alterado de `./playnite_covers` → `./app/files`
+
+### v1.2.0
+- Card de filtro rápido "Favoritos" adicionado
+- Alternância de input: 3 estados (all → Controle → Teclado/Mouse) com ícone Gamepad2/Keyboard
+- Favoritar jogo: botão ★ em GameCard e GameRow com `stopPropagation`
+- Badge `({n})` do SortDropdown oculta em mobile (`hidden sm:inline`)
+- `api.js`: `getBaseUrl()` com `window.location.hostname`, `absUrl()` para URLs absolutas
+- Logotipo e gradiente do header ajustados
 
 ## Melhorias Futuras
 

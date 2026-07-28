@@ -12,7 +12,6 @@ function getCoopLabel(coopPlayers) {
 function formatPlaytime(seconds) {
   if (!seconds || seconds === 0) return null;
   const hours = seconds / 3600;
-  if (hours < 10) return hours.toFixed(1) + 'h';
   return Math.round(hours) + 'h';
 }
 
@@ -67,7 +66,7 @@ export default function GameCard({ game, onClick, onToggleFavorite }) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-        {playtimeLabel && (
+        {playtimeLabel != "0h" && (
           <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-zinc-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1">
             <Clock className="w-3 h-3" />
             <span>{playtimeLabel}</span>
@@ -122,7 +121,7 @@ export default function GameCard({ game, onClick, onToggleFavorite }) {
         <div className="flex items-center flex-wrap gap-x-2 gap-y-1 text-[11px] text-zinc-400">
           <span className="break-all max-w-[140px]">{game.platform?.name}</span>
 
-          {game.hltb_main && (
+          {game.hltb_main > 0 && (
             <>
               <span className="text-zinc-600">•</span>
               <Clock className="w-3 h-3 text-zinc-500" />

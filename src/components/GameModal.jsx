@@ -69,7 +69,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
           hltb_main: result.hltb_main ?? prev.hltb_main,
           hltb_main_extra: result.hltb_main_extra ?? prev.hltb_main_extra,
           hltb_full: result.hltb_full ?? prev.hltb_full,
-          cover_url: result.cover_url ?? prev.cover_url,
+          //cover_url: result.cover_url ?? prev.cover_url,
         }));
         showToast(`Dados HLTB encontrados para "${result.title}"`, 'success');
       }
