@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
-import { LayoutGrid, List, Plus, Loader2, AlertCircle, ChevronDown, FlaskConical, Bookmark, AlertTriangle, HardDrive, X, Check, Download } from 'lucide-react';
+import { LayoutGrid, List, Plus, Loader2, AlertCircle, ChevronDown, FlaskConical, Bookmark, AlertTriangle, HardDrive, Star, Gamepad2, Keyboard, X, Check, Download } from 'lucide-react';
 import * as api from '../services/api';
 import FilterBar from '../components/FilterBar';
 import GameCard from '../components/GameCard';
@@ -19,6 +19,8 @@ const DEFAULT_FILTERS = {
   coopType: 'all',
   genres: [],
   mustTestOnly: false,
+  favoriteOnly: false,
+  inputRec: 'all',
   highInterestOnly: false,
   missingDataOnly: false,
   sort: [],
@@ -186,6 +188,8 @@ export default function Library() {
     return games.filter(game => {
       if (filters.search && !game.title.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.mustTestOnly && !game.must_test) return false;
+      if (filters.favoriteOnly && !game.favorite) return false;
+      if (filters.inputRec !== 'all' && game.input_recommendation !== filters.inputRec) return false;
       if (filters.missingDataOnly && !hasMissingData(game)) return false;
       if (filters.highInterestOnly && game.interest_rating < 4) return false;
       if (filters.installed === 'installed' && !game.storage_device) return false;
@@ -255,6 +259,10 @@ export default function Library() {
     games.filter(g => g.must_test && g.storage_device).length,
   [games]);
 
+  const favoriteCount = useMemo(() =>
+    games.filter(g => g.favorite).length,
+  [games]);
+
   const backlogFocusCount = useMemo(() =>
     games.filter(g => g.gameplay_status === 'Backlog' && g.interest_rating >= 4).length,
   [games]);
@@ -269,6 +277,11 @@ export default function Library() {
 
   const uninstalledCount = games.length - installedGames.length;
 
+  const inputFilteredCount = useMemo(() => {
+    if (filters.inputRec === 'all') return games.length;
+    return games.filter(g => g.input_recommendation === filters.inputRec).length;
+  }, [games, filters.inputRec]);
+
   const hdBreakdown = useMemo(() =>
     installedGames.reduce((acc, game) => {
       const name = game.storage_device?.name;
@@ -282,6 +295,16 @@ export default function Library() {
   const hdEntries = useMemo(() =>
     Object.entries(hdBreakdown).sort((a, b) => b[1] - a[1]),
   [hdBreakdown]);
+
+  const handleToggleFavorite = async (gameId, newVal) => {
+    try {
+      await api.updateGame(gameId, { favorite: newVal });
+      setGames(prev => prev.map(g => g.id === gameId ? { ...g, favorite: newVal } : g));
+      showToast(newVal ? 'Adicionado aos favoritos ★' : 'Removido dos favoritos', 'success');
+    } catch (err) {
+      showToast(err.message || 'Erro ao alterar favorito', 'error');
+    }
+  };
 
   const handleCardClick = (game) => {
     setSelectedGame(game);
@@ -343,6 +366,13 @@ export default function Library() {
       });
     } else if (type === 'hds') {
       setFilters(prev => ({ ...prev, hds: value }));
+    } else if (type === 'favoriteOnly') {
+      setFilters(prev => ({ ...prev, favoriteOnly: !prev.favoriteOnly }));
+    } else if (type === 'inputRec') {
+      setFilters(prev => {
+        const cycle = { 'all': 'Controle', 'Controle': 'Teclado/Mouse', 'Teclado/Mouse': 'all' };
+        return { ...prev, inputRec: cycle[prev.inputRec] || 'all' };
+      });
     } else if (type === 'missingDataOnly') {
       setFilters(prev => ({ ...prev, missingDataOnly: !prev.missingDataOnly }));
     }
@@ -376,6 +406,7 @@ export default function Library() {
     if (key === 'gameplayStatus') return val.length > 0;
     if (key === 'missingDataOnly') return val;
     if (key === 'coopType') return val !== 'all';
+    if (key === 'inputRec') return val !== 'all';
     if (typeof val === 'boolean') return val;
     return false;
   }).length;
@@ -384,6 +415,8 @@ export default function Library() {
 
   const hdsActive = filters.hds.length > 0;
   const mustTestActive = filters.mustTestOnly;
+  const favoriteActive = filters.favoriteOnly;
+  const inputRecActive = filters.inputRec !== 'all';
   const backlogActive = filters.highInterestOnly && filters.gameplayStatus.includes('Backlog');
   const missingActive = filters.missingDataOnly;
 
@@ -472,7 +505,7 @@ export default function Library() {
         )}
 
         {/* Quick Filter Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           {/* Installed - HD Filter */}
           <button
             onClick={() => setHdPopupOpen(true)}
@@ -493,11 +526,6 @@ export default function Library() {
                 <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Instalados</p>
                 <p className="text-[11px] text-zinc-500 mt-0.5 hidden sm:block">Armazenamento ({hdEntries.length} {hdEntries.length === 1 ? 'disco' : 'discos'})</p>
               </div>
-              {hdsActive && (
-                <span className="text-[10px] font-bold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full border border-green-500/30 flex-shrink-0">
-                  {filters.hds.length} HD{(filters.hds.length) > 1 ? 's' : ''}
-                </span>
-              )}
             </div>
           </button>
 
@@ -521,18 +549,61 @@ export default function Library() {
                 <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Jogos a Testar</p>
                 <p className="text-[11px] text-zinc-500 mt-0.5 hidden sm:block">Instalados para validar</p>
               </div>
-              {mustTestActive && (
-                <span className="ml-auto text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30 flex-shrink-0">
-                  ATIVO
-                </span>
-              )}
             </div>
           </button>
 
-          {/* Backlog Focus */}
+          {/* Favorites */}
+          <button
+            onClick={() => handleQuickFilter('favoriteOnly')}
+            className={`bg-zinc-900 border rounded-xl p-4 shadow-md transition text-left col-span-1 relative ${
+              favoriteActive
+                ? 'border-yellow-500 bg-yellow-500/5 ring-1 ring-yellow-500/30'
+                : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`p-2.5 rounded-lg relative ${favoriteActive ? 'bg-yellow-500/20 text-yellow-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                <Star className="w-5 h-5" />
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-800/70 rounded-full flex items-center justify-center text-[10px] font-extrabold text-yellow-400 shadow-sm">
+                  {favoriteCount}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Favoritos</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5 hidden sm:block">Jogos marcados como favorito</p>
+              </div>
+            </div>
+          </button>
+
+          {/* Input Preferido */}
+          <button
+            onClick={() => handleQuickFilter('inputRec')}
+            className={`bg-zinc-900 border rounded-xl p-4 shadow-md transition text-left col-span-1 relative ${
+              inputRecActive
+                ? 'border-sky-500 bg-sky-500/5 ring-1 ring-sky-500/30'
+                : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40'
+            }`}
+          >
+            <div className="flex items-center space-x-3">
+              <div className={`p-2.5 rounded-lg relative ${inputRecActive ? 'bg-sky-500/20 text-sky-400' : 'bg-sky-500/10 text-sky-400'}`}>
+                <Gamepad2 className="w-5 h-5" />
+                <span className="absolute -top-2 -right-2 w-5 h-5 bg-sky-800/70 rounded-full flex items-center justify-center text-[10px] font-extrabold text-sky-400 shadow-sm">
+                  {inputFilteredCount}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Input</p>
+                <p className="text-[11px] text-zinc-500 mt-0.5 hidden sm:block">
+                  {inputRecActive ? filters.inputRec : 'Controle / Teclado'}
+                </p>
+              </div>
+            </div>
+          </button>
+
+          {/* Backlog Focus — hidden on small screens */}
           <button
             onClick={() => handleQuickFilter('backlogFocus')}
-            className={`bg-zinc-900 border rounded-xl p-4 shadow-md transition text-left col-span-1 relative ${
+            className={`bg-zinc-900 border rounded-xl p-4 shadow-md transition text-left col-span-1 relative hidden lg:block ${
               backlogActive
                 ? 'border-rose-500 bg-rose-500/5 ring-1 ring-rose-500/30'
                 : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40'
@@ -549,18 +620,13 @@ export default function Library() {
                 <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Foco no Backlog</p>
                 <p className="text-[11px] text-zinc-500 mt-0.5 hidden sm:block">Alta vontade pendente</p>
               </div>
-              {backlogActive && (
-                <span className="ml-auto text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-full border border-rose-500/30 flex-shrink-0">
-                  ATIVO
-                </span>
-              )}
             </div>
           </button>
 
-          {/* Missing Data */}
+          {/* Missing Data — hidden on small screens */}
           <button
             onClick={() => handleQuickFilter('missingDataOnly')}
-            className={`bg-zinc-900 border rounded-xl p-4 shadow-md transition text-left col-span-1 relative ${
+            className={`bg-zinc-900 border rounded-xl p-4 shadow-md transition text-left col-span-1 relative hidden lg:block ${
               missingActive
                 ? 'border-orange-500 bg-orange-500/5 ring-1 ring-orange-500/30'
                 : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/40'
@@ -577,11 +643,6 @@ export default function Library() {
                 <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider">Dados Faltantes</p>
                 <p className="text-[11px] text-zinc-500 mt-0.5 hidden sm:block">Jogos com info. incompleta</p>
               </div>
-              {missingActive && (
-                <span className="ml-auto text-[10px] font-bold text-orange-400 bg-orange-500/10 px-2 py-0.5 rounded-full border border-orange-500/30 flex-shrink-0">
-                  ATIVO
-                </span>
-              )}
             </div>
           </button>
         </div>
@@ -625,7 +686,7 @@ export default function Library() {
                   <>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4">
                       {displayedGames.map(game => (
-                        <GameCard key={game.id} game={game} onClick={handleCardClick} />
+                        <GameCard key={game.id} game={game} onClick={handleCardClick} onToggleFavorite={handleToggleFavorite} />
                       ))}
                     </div>
 
@@ -667,7 +728,7 @@ export default function Library() {
                       </thead>
                       <tbody>
                         {displayedGames.map(game => (
-                          <GameRow key={game.id} game={game} onClick={handleCardClick} />
+                           <GameRow key={game.id} game={game} onClick={handleCardClick} onToggleFavorite={handleToggleFavorite} />
                         ))}
                       </tbody>
                     </table>

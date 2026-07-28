@@ -3,15 +3,10 @@ import { Wrench, Clock, Star, Gamepad2, Keyboard, Users } from 'lucide-react';
 
 function getCoopLabel(coopPlayers) {
   if (!coopPlayers || coopPlayers === '1 Jogador') return null;
+  if (coopPlayers === '2 Jogadores') return '2';
   if (coopPlayers === 'Até 4 Jogadores') return '+2';
   if (coopPlayers === 'Mais de 4 Jogadores') return '+4';
-  const match = coopPlayers.match(/(\d+)/);
-  if (match) {
-    const num = parseInt(match[1], 10);
-    if (num >= 5) return '+4';
-    if (num >= 2) return '+2';
-  }
-  return '+2';
+  return null;
 }
 
 function formatPlaytime(seconds) {
@@ -21,7 +16,7 @@ function formatPlaytime(seconds) {
   return Math.round(hours) + 'h';
 }
 
-export default function GameCard({ game, onClick }) {
+export default function GameCard({ game, onClick, onToggleFavorite }) {
   const coverUrl = game.cover_url || '';
 
   const statusColors = {
@@ -46,7 +41,9 @@ export default function GameCard({ game, onClick }) {
   return (
     <div
       onClick={() => onClick(game)}
-      className="group relative bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-md cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-zinc-700 hover:z-10 flex flex-col"
+      className={`group relative bg-zinc-900 rounded-xl overflow-hidden shadow-md cursor-pointer transition-all duration-300 hover:scale-[1.03] hover:shadow-xl hover:border-zinc-700 hover:z-10 flex flex-col ${
+        game.favorite ? 'border-2 border-amber-400/60' : 'border border-zinc-800'
+      }`}
     >
       {/* Must Test Indicator */}
       {game.must_test && (
@@ -103,6 +100,13 @@ export default function GameCard({ game, onClick }) {
       <div className="p-3 flex flex-col gap-1.5 flex-1 min-h-0">
         {/* Title + Must Test inline */}
         <div className="flex items-center gap-1.5 min-w-0">
+          <button
+            onClick={e => { e.stopPropagation(); onToggleFavorite(game.id, !game.favorite); }}
+            className={`flex-shrink-0 transition ${game.favorite ? 'text-amber-400' : 'text-zinc-600 hover:text-zinc-400'}`}
+            title={game.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          >
+            <Star className={`w-4 h-4 ${game.favorite ? 'fill-amber-400' : ''}`} />
+          </button>
           <h3 className="text-sm font-bold text-white truncate leading-tight" title={game.title}>
             {game.title}
           </h3>

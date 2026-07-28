@@ -1,7 +1,7 @@
 import React from 'react';
 import { Wrench, Star, Clock } from 'lucide-react';
 
-export default function GameRow({ game, onClick }) {
+export default function GameRow({ game, onClick, onToggleFavorite }) {
   const statusColors = {
     'Jogando': 'bg-emerald-600',
     'Backlog': 'bg-sky-600',
@@ -17,7 +17,7 @@ export default function GameRow({ game, onClick }) {
       onClick={() => onClick(game)}
       className={`border-b border-zinc-800/50 hover:bg-zinc-800/40 transition cursor-pointer ${
         game.must_test ? 'bg-amber-500/5' : ''
-      }`}
+      } ${game.favorite ? 'bg-amber-400/[0.02]' : ''}`}
     >
       {/* Title + Cover + Must Test */}
       <td className="py-3 px-4">
@@ -31,6 +31,13 @@ export default function GameRow({ game, onClick }) {
           </div>
           <div className="min-w-0">
             <div className="flex items-center space-x-2">
+              <button
+                onClick={e => { e.stopPropagation(); onToggleFavorite(game.id, !game.favorite); }}
+                className={`flex-shrink-0 transition ${game.favorite ? 'text-amber-400' : 'text-zinc-600 hover:text-zinc-400'}`}
+                title={game.favorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+              >
+                <Star className={`w-4 h-4 ${game.favorite ? 'fill-amber-400' : ''}`} />
+              </button>
               <span className="text-sm font-semibold text-white truncate max-w-[200px]">{game.title}</span>
               {game.must_test && (
                 <span className="bg-amber-500/20 text-amber-400 text-[10px] font-extrabold px-1.5 py-0.5 rounded flex items-center space-x-0.5 border border-amber-500/30">
@@ -76,7 +83,7 @@ export default function GameRow({ game, onClick }) {
         <div className="flex items-center gap-2 text-xs text-zinc-400">
           <div className="flex items-center space-x-1">
             <Clock className="w-3 h-3" />
-            <span>{game.hltb_main || '?'}h</span>
+            <span>{game.hltb_main ? `${game.hltb_main}h` : '—'}</span>
           </div>
           {game.playtime_seconds > 0 && (
             <>
