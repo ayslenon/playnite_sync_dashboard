@@ -66,7 +66,7 @@ export default function GameCard({ game, onClick, onToggleFavorite }) {
 
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
 
-        {playtimeLabel != "0h" && (
+        {playtimeLabel != "0h" && playtimeLabel != null && (
           <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-zinc-300 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center space-x-1">
             <Clock className="w-3 h-3" />
             <span>{playtimeLabel}</span>
