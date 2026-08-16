@@ -256,7 +256,7 @@ export default function Library() {
 
   // Quick filter counts
   const mustTestCount = useMemo(() =>
-    games.filter(g => g.must_test && g.storage_device).length,
+    games.filter(g => g.must_test).length,
   [games]);
 
   const favoriteCount = useMemo(() =>

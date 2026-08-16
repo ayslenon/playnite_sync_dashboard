@@ -2,6 +2,16 @@
 
 Este documento descreve a estrutura JSON atual de cada jogo, compatível com a API do backend FastAPI.
 
+## Versão 1.3.0: execução local e mídia
+
+O dashboard pode ser servido pelo backend em `https://ayslenon-pc.local:8000` ou aberto
+durante o desenvolvimento pelo Vite. A camada de API usa a origem HTTPS atual, portanto o
+cliente não depende de um IP fixo da rede local.
+
+O PWA mantém a interface estática em cache para abertura rápida e navegação limitada sem
+rede. Consultas, alterações, sincronização Playnite e arquivos de capa continuam exigindo
+que o servidor esteja ligado.
+
 ## Estrutura Completa
 
 ```json
@@ -42,15 +52,27 @@ Este documento descreve a estrutura JSON atual de cada jogo, compatível com a A
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
 | `id` | `string` | ✅ | UUID curto (12 caracteres hex) gerado pelo servidor |
-| `playnite_id` | `string` \| `null` | ❌ | GUID do Playnite para matching em sync futuro |
+| `playnite_id` | `string` \| `null` | ❌ | GUID do Playnite para matching no sync |
 | `title` | `string` | ✅ | Nome do jogo |
+| `favorite` | `boolean` | ❌ | Favoritado (★). Default `false` |
 
 ### Mídia
 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
-| `cover_url` | `string` | URL da capa. Exibida no card e modal. Placeholder `Gamepad2` se vazio |
-| `background_url` | `string` | URL de fundo. Usada no header do modal de edição |
+| `cover_url` | `string` | URL absoluta externa ou link relativo local no formato `/api/covers/playnite/{playnite_id}/{filename}`. Exibida no card e modal. Placeholder `Gamepad2` se vazio |
+| `background_url` | `string` | URL absoluta externa ou link relativo local no mesmo formato. Usada no header do modal de edição |
+
+Links relativos são resolvidos pelo frontend contra a origem atual (`https://ayslenon-pc.local:8000`,
+`https://localhost:8000` ou a origem configurada). O backend normaliza caminhos Windows,
+Unix e URLs antigas antes de persistir os assets do Playnite; o banco não deve guardar
+`localhost`, IP ou caminho absoluto de arquivo.
+
+### Favoritos
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `favorite` | `boolean` | `true` se o jogo estiver favoritado. Togglado via botão ★ no card/linha |
 
 ### Classificação
 
@@ -129,8 +151,8 @@ O serviço `src/services/api.js` faz a conversão entre o formato do frontend e 
 
 | Componente | Campos utilizados |
 |------------|-------------------|
-| `GameCard` | `cover_url`, `title`, `platform.name`, `hltb_main`, `genres`, `storage_device.name`, `interest_rating`, `gameplay_status`, `must_test`, `score`, `coop_players`, `input_recommendation`, `playtime_seconds` |
-| `GameRow` | `cover_url`, `title`, `platform.name`, `genres`, `storage_device.name`, `hltb_main`, `interest_rating`, `score`, `gameplay_status`, `must_test`, `playtime_seconds` |
+| `GameCard` | `cover_url`, `title`, `platform.name`, `hltb_main`, `genres`, `storage_device.name`, `interest_rating`, `gameplay_status`, `must_test`, `favorite`, `score`, `coop_players`, `input_recommendation`, `playtime_seconds` |
+| `GameRow` | `cover_url`, `title`, `platform.name`, `genres`, `storage_device.name`, `hltb_main`, `interest_rating`, `score`, `gameplay_status`, `must_test`, `favorite`, `playtime_seconds` |
 | `FilterBar` | `platform.name`, `genres`, `gameplay_status`, `storage_device`, `interest_rating`, `coop_type` |
 | `GameModal` | Todos os campos (formulário completo) |
 | `SortDropdown` | `sort` (array de `{field, dir}`) |

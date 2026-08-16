@@ -1,9 +1,32 @@
-const getBaseUrl = () => `http://${window.location.hostname}:8000`;
+const getBaseUrl = () => {
+  const configured = import.meta.env.VITE_API_URL?.trim();
+  if (configured) return configured.replace(/\/$/, '');
+
+  const { protocol, hostname, port, origin } = window.location;
+  // The production dashboard is served by FastAPI on the same HTTPS origin.
+  if (port === '8000' || (!port && protocol !== 'file:')) return origin;
+
+  // Vite dev/preview runs on another port but talks to the same backend.
+  return `${protocol}//${hostname}:8000`;
+};
 const TIMEOUT_MS = 15000;
 
 function absUrl(path) {
-  if (!path || path.startsWith('http')) return path;
-  return `${getBaseUrl()}${path}`;
+  if (!path) return path;
+  if (path.startsWith('/')) return `${getBaseUrl()}${path}`;
+
+  // Rewrite legacy local absolute URLs stored by older syncs. External image
+  // URLs remain untouched.
+  try {
+    const parsed = new URL(path);
+    if (parsed.pathname.startsWith('/api/covers/playnite/')) {
+      return `${getBaseUrl()}${parsed.pathname}`;
+    }
+  } catch {
+    // Preserve malformed/legacy values so the UI can report the broken URL.
+  }
+
+  return path;
 }
 
 async function request(path, options = {}) {
