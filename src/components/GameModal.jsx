@@ -210,7 +210,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div
-        className="relative bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        className="relative bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-x-hidden overflow-y-auto"
         onClick={e => e.stopPropagation()}
       >
         {/* Background image header */}
@@ -252,20 +252,22 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
         </div>
 
         {/* Tabs Navigation */}
-        <div className="flex border-b border-zinc-800 px-5">
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`text-xs font-bold px-4 py-3 border-b-2 transition ${
-                activeTab === tab.id
-                  ? 'border-indigo-500 text-white'
-                  : 'border-transparent text-zinc-500 hover:text-zinc-300'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="min-w-0 overflow-x-auto overflow-y-hidden border-b border-zinc-800">
+          <div className="flex min-w-max px-5">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`shrink-0 text-xs font-bold px-4 py-3 border-b-2 transition ${
+                  activeTab === tab.id
+                    ? 'border-indigo-500 text-white'
+                    : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Tab Content */}
@@ -400,7 +402,10 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
 
                 {/* Must Test */}
                 <div className="space-y-1.5">
-                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Jogo a Testar</label>
+                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
+                    <span className="hidden sm:inline">Jogo a Testar</span>
+                    <span className="sm:hidden">Testar</span>
+                  </label>
                   <button
                     onClick={() => handleChange('must_test', !formData.must_test)}
                     className={`w-full flex items-center justify-center space-x-2 py-2.5 px-3 rounded-lg text-sm font-bold border transition ${
@@ -410,9 +415,9 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                     }`}
                   >
                     {formData.must_test ? (
-                      <><EyeOff className="w-4 h-4" /><span>A Testar</span></>
+                      <><EyeOff className="w-4 h-4" /><span>Sim</span></>
                     ) : (
-                      <><Eye className="w-4 h-4" /><span>Marcar</span></>
+                      <><Eye className="w-4 h-4" /><span>Não</span></>
                     )}
                   </button>
                 </div>
