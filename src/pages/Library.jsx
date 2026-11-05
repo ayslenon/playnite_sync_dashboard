@@ -29,6 +29,10 @@ const DEFAULT_FILTERS = {
 const CHUNK_SIZE = 120;
 const DISPLAY_STEP = 60;
 
+function matchesInput(game, filter) {
+  return filter === 'all' || game.input_recommendation === filter || game.input_recommendation === 'Ambos';
+}
+
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -189,7 +193,7 @@ export default function Library() {
       if (filters.search && !game.title.toLowerCase().includes(filters.search.toLowerCase())) return false;
       if (filters.mustTestOnly && !game.must_test) return false;
       if (filters.favoriteOnly && !game.favorite) return false;
-      if (filters.inputRec !== 'all' && game.input_recommendation !== filters.inputRec) return false;
+      if (!matchesInput(game, filters.inputRec)) return false;
       if (filters.missingDataOnly && !hasMissingData(game)) return false;
       if (filters.highInterestOnly && game.interest_rating < 4) return false;
       if (filters.installed === 'installed' && !game.storage_device) return false;
@@ -278,8 +282,7 @@ export default function Library() {
   const uninstalledCount = games.length - installedGames.length;
 
   const inputFilteredCount = useMemo(() => {
-    if (filters.inputRec === 'all') return games.length;
-    return games.filter(g => g.input_recommendation === filters.inputRec).length;
+    return games.filter(g => matchesInput(g, filters.inputRec)).length;
   }, [games, filters.inputRec]);
 
   const hdBreakdown = useMemo(() =>
