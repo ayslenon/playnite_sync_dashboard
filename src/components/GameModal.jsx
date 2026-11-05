@@ -48,11 +48,12 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
     if (!data.interest_rating || data.interest_rating < 1) errs.interest_rating = 'Selecione a vontade de jogar';
     if (data.storage_device && !data.storage_device.name?.trim()) errs.storage_device = 'Informe o local de instalação';
     if (data.gameplay_status === 'Finalizado') {
-      if (!data.score?.trim()) errs.score = 'Nota de conclusão é obrigatória';
+      if (data.score === '' || data.score == null) errs.score = 'Nota de conclusão é obrigatória';
       if (!data.finish_hours && data.finish_hours !== 0) errs.finish_hours = 'Horas para finalizar é obrigatório';
       if (!data.finish_date) errs.finish_date = 'Data de finalização é obrigatória';
       if (!data.replay_score || data.replay_score < 1) errs.replay_score = 'Selecione a vontade de rejogar';
     }
+    if (data.score !== '' && data.score != null && (!Number.isFinite(Number(data.score)) || Number(data.score) < 0 || Number(data.score) > 10 || !/^\d+(?:\.\d)?$/.test(String(data.score)))) errs.score = 'Informe uma nota de 0 a 10 com até uma casa decimal';
     return errs;
   };
 
@@ -143,7 +144,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
 
   const confirmSave = () => {
     setConfirm(null);
-    onSave(formData);
+    onSave({ ...formData, score: formData.score === '' || formData.score == null ? null : Number(formData.score) });
   };
 
   const confirmDelete = () => {
@@ -660,13 +661,14 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                   <span className="text-red-400 ml-1">*</span>
                 </label>
                 <input
-                  type="text"
-                  value={formData.score || ''}
+                  type="number"
+                  min="0" max="10" step="0.1"
+                  value={formData.score ?? ''}
                   onChange={(e) => handleChange('score', e.target.value)}
                   className={`w-full bg-zinc-950 border rounded-lg px-3 py-2 text-sm text-white outline-none transition ${
                     errors.score ? 'border-red-500 focus:border-red-500 ring-1 ring-red-500/30' : 'border-zinc-800 focus:border-indigo-500'
                   }`}
-                  placeholder="8/10, 9.5..."
+                  placeholder="8.5"
                 />
                 {errors.score && <p className="text-red-400 text-xs mt-1">{errors.score}</p>}
               </div>

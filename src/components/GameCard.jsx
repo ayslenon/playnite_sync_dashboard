@@ -73,9 +73,9 @@ export default function GameCard({ game, onClick, onToggleFavorite }) {
           </div>
         )}
 
-        {game.score && (
+        {game.score != null && (
           <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-0.5 rounded-full">
-            {game.score}
+            {game.score}/10
           </div>
         )}
 

@@ -175,7 +175,7 @@ export default function Library() {
     if (!game.notes) return true;
     if (!game.platform) return true;
     if (game.gameplay_status === 'Finalizado') {
-      if (!game.score) return true;
+      if (game.score == null) return true;
       if (!game.finish_hours) return true;
       if (!game.finish_date) return true;
       if (!game.replay_score || game.replay_score === 0) return true;

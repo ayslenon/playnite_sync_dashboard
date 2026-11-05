@@ -108,7 +108,7 @@ export default function GameRow({ game, onClick, onToggleFavorite }) {
 
       {/* Score */}
       <td className="py-3 px-4 text-center">
-        <span className="text-sm font-bold text-zinc-400">{game.score || '—'}</span>
+        <span className="text-sm font-bold text-zinc-400">{game.score != null ? `${game.score}/10` : '—'}</span>
       </td>
     </tr>
   );
