@@ -189,20 +189,59 @@ export default function FilterBar({
         </div>
       </div>
 
-      {/* Coop Mode */}
-      <div className="space-y-1.5">
-        <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider block">Multiplayer / Coop</label>
+      {/* Multiplayer */}
+      <div className="space-y-2">
+        <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider block">Jogadores</label>
         <select
           value={filters.coopType}
           onChange={(e) => handleFilterChange('coopType', e.target.value)}
           className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-xs text-white outline-none transition"
         >
           <option value="all">Todos</option>
-          <option value="Um Jogador">Um Jogador</option>
-          <option value="Sofá">Coop de Sofá (Local)</option>
-          <option value="Online">Coop/Multiplayer Online</option>
-          <option value="LAN">LAN</option>
+          <option value="single">Um Jogador</option>
+          <option value="multi">Multiplayer</option>
         </select>
+        {filters.coopType === 'multi' && (
+          <div className="space-y-2 pt-1">
+            <span className="text-zinc-500 text-xs block">Quantidade de jogadores</span>
+            <div className="flex flex-wrap gap-1.5">
+              {['2 Jogadores', 'Até 4 Jogadores', 'Mais de 4 Jogadores'].map(value => (
+                <label key={value} className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-300">
+                  <input type="checkbox" checked={filters.coopPlayerCounts.includes(value)}
+                    onChange={() => toggleArrayFilter('coopPlayerCounts', value)} className="accent-indigo-500" />
+                  {value}
+                </label>
+              ))}
+            </div>
+            <span className="text-zinc-500 text-xs block">Modo de jogo</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                ['Cooperativo', 'Cooperativo'], ['Competitivo/Versus', 'Versus'],
+                ['__unspecified__', 'Não informado'],
+              ].map(([value, label]) => (
+                <label key={value} className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-300">
+                  <input type="checkbox" checked={filters.multiplayerModes.includes(value)}
+                    onChange={() => toggleArrayFilter('multiplayerModes', value)} className="accent-indigo-500" />
+                  {label}
+                </label>
+              ))}
+            </div>
+            <span className="text-zinc-500 text-xs block">Modalidades incluídas</span>
+            <div className="flex flex-wrap gap-1.5">
+              {[
+                ['Sofá', 'Sofá'], ['Online', 'Online'], ['LAN', 'LAN'],
+                ['__unspecified__', 'Não informada'],
+              ].map(([value, label]) => (
+                <label key={value} className="flex items-center gap-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-2 py-1.5 text-xs text-zinc-300">
+                  <input type="checkbox" checked={filters.coopCategories.includes(value)}
+                    onChange={() => toggleArrayFilter('coopCategories', value)} className="accent-indigo-500" />
+                  {label}
+                </label>
+              ))}
+            </div>
+            <p className="text-zinc-500 text-xs">Jogos que correspondam a qualquer opção marcada aparecem nos resultados.</p>
+          </div>
+        )}
       </div>
 
       {/* Genres Tag Cloud */}

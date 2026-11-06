@@ -35,8 +35,9 @@ que o servidor esteja ligado.
   "hltb_main_extra": 11,
   "hltb_full": 151,
   "coop_players": "1 Jogador",
-  "coop_type": ["Um Jogador"],
-  "coop_screen_type": "Tela Inteira",
+  "coop_type": [],
+  "coop_screen_type": "Tela Compartilhada",
+  "multiplayer_mode": ["Cooperativo", "Competitivo/Versus"],
   "input_recommendation": "Controle",
   "playtime_seconds": 15622,
   "notes": "Sensacional.",
@@ -108,8 +109,9 @@ Unix e URLs antigas antes de persistir os assets do Playnite; o banco não deve 
 | Campo | Tipo | Descrição |
 |-------|------|-----------|
 | `coop_players` | `string` | `"1 Jogador"`, `"2 Jogadores"`, `"Até 4 Jogadores"`, `"Mais de 4 Jogadores"` |
-| `coop_type` | `string[]` | Array: `"Um Jogador"`, `"Sofá"`, `"Online"`, `"LAN"` |
-| `coop_screen_type` | `string` | `"Tela Inteira"`, `"Tela Dividida"`, `"Versus"` |
+| `coop_type` | `string[]` | Array: `"Sofá"`, `"Online"`, `"LAN"` |
+| `multiplayer_mode` | `string[]` | `"Cooperativo"`, `"Competitivo/Versus"` |
+| `coop_screen_type` | `string` | `"Tela Compartilhada"`, `"Tela Dividida"` |
 
 ### Input
 

@@ -20,8 +20,9 @@ const EMPTY_GAME = {
   interest_rating: 3,
   replay_score: 3,
   coop_players: '1 Jogador',
-  coop_type: ['Um Jogador'],
-  coop_screen_type: 'Tela Inteira',
+  coop_type: [],
+  multiplayer_mode: [],
+  coop_screen_type: 'Tela Compartilhada',
   input_recommendation: 'Controle',
   must_test: false,
 };
@@ -608,9 +609,6 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
               <div className="space-y-1.5">
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
                   Tipo
-                  {formData.coop_players !== '1 Jogador' && (
-                    <span className="text-zinc-600 font-normal lowercase ml-1">(selecione um ou mais)</span>
-                  )}
                 </label>
                 <div className="flex flex-wrap gap-1.5">
                   {['Sofá', 'Online', 'LAN'].map(type => {
@@ -623,7 +621,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                           selected
                             ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400'
                             : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'
-                        } ${formData.coop_players === '1 Jogador' ? 'opacity-40 pointer-events-none' : ''}`}
+                        }`}
                       >
                         {type}
                       </button>
@@ -633,15 +631,26 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
               </div>
 
               <div className="space-y-1.5">
+                <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Modo de jogo</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {['Cooperativo', 'Competitivo/Versus'].map(mode => (
+                    <button key={mode} type="button" onClick={() => setFormData(prev => ({ ...prev, multiplayer_mode: (prev.multiplayer_mode || []).includes(mode) ? prev.multiplayer_mode.filter(value => value !== mode) : [...(prev.multiplayer_mode || []), mode] }))}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition ${(formData.multiplayer_mode || []).includes(mode) ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'}`}>
+                      {mode}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Tela</label>
                 <select
-                  value={formData.coop_screen_type || 'Tela Inteira'}
+                  value={formData.coop_screen_type || 'Tela Compartilhada'}
                   onChange={(e) => handleChange('coop_screen_type', e.target.value)}
                   className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
                 >
-                  <option value="Tela Inteira">Tela Inteira</option>
+                  <option value="Tela Compartilhada">Tela Compartilhada</option>
                   <option value="Tela Dividida">Tela Dividida</option>
-                  <option value="Versus">Versus</option>
                 </select>
               </div>
             </div>
