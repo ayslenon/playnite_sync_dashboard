@@ -1,4 +1,4 @@
-const CACHE_NAME = 'game-library-shell-v1.3.0-icons3'
+const CACHE_NAME = 'game-library-shell-v1.3.0-multiplayer2'
 const APP_SHELL = [
   '/',
   '/index.html',

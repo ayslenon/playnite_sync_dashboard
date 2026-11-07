@@ -18,11 +18,9 @@ const EMPTY_GAME = {
   hltb_full: 0,
   notes: '',
   interest_rating: 3,
-  replay_score: 3,
   coop_players: '1 Jogador',
   coop_type: [],
   multiplayer_mode: [],
-  coop_screen_type: 'Tela Compartilhada',
   input_recommendation: 'Controle',
   must_test: false,
 };
@@ -52,7 +50,6 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
       if (data.score === '' || data.score == null) errs.score = 'Nota de conclusão é obrigatória';
       if (!data.finish_hours && data.finish_hours !== 0) errs.finish_hours = 'Horas para finalizar é obrigatório';
       if (!data.finish_date) errs.finish_date = 'Data de finalização é obrigatória';
-      if (!data.replay_score || data.replay_score < 1) errs.replay_score = 'Selecione a vontade de rejogar';
     }
     if (data.score !== '' && data.score != null && (!Number.isFinite(Number(data.score)) || Number(data.score) < 0 || Number(data.score) > 10 || !/^\d+(?:\.\d)?$/.test(String(data.score)))) errs.score = 'Informe uma nota de 0 a 10 com até uma casa decimal';
     return errs;
@@ -90,7 +87,12 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
     setConfirm(null);
     setHltbError(null);
     if (game && isOpen) {
-      setFormData(JSON.parse(JSON.stringify(game)));
+      const nextGame = JSON.parse(JSON.stringify(game));
+      if (nextGame.coop_players === '1 Jogador') {
+        nextGame.coop_type = [];
+        nextGame.multiplayer_mode = [];
+      }
+      setFormData(nextGame);
       const hds = Array.from(new Set((games || []).map(g => g.storage_device?.name).filter(Boolean)));
       setHdMode(game.storage_device && hds.includes(game.storage_device.name) ? 'existing' : 'custom');
     } else if (!game && isOpen) {
@@ -113,7 +115,19 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
   };
 
   const handleChange = (key, value) => {
-    setFormData(prev => ({ ...prev, [key]: value }));
+    setFormData(prev => {
+      const next = { ...prev, [key]: value };
+      if (key === 'coop_players' && value === '1 Jogador') {
+        next.coop_type = [];
+        next.multiplayer_mode = [];
+      }
+      if (key === 'gameplay_status' && value === 'Finalizado' && !prev.finish_date) {
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        next.finish_date = today.toISOString();
+      }
+      return next;
+    });
     setErrors(prev => ({ ...prev, [key]: undefined }));
   };
 
@@ -129,7 +143,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
     const errs = validateForm(formData);
     setErrors(errs);
     if (Object.keys(errs).length > 0) {
-      if (errs.score || errs.finish_hours || errs.finish_date || errs.replay_score) {
+      if (errs.score || errs.finish_hours || errs.finish_date) {
         setActiveTab('finish');
       } else if (errs.storage_device) {
         setActiveTab('details');
@@ -194,6 +208,7 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
 
   const bgUrl = game?.background_url || '';
   const isFinalized = formData.gameplay_status === 'Finalizado';
+  const isSinglePlayer = formData.coop_players === '1 Jogador';
 
   const tabs = [
     { id: 'general', label: 'Geral' },
@@ -342,30 +357,6 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                 {errors.genres && <p className="text-red-400 text-xs mt-1">{errors.genres}</p>}
               </div>
 
-              {/* Images */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">URL da Capa</label>
-                  <input
-                    type="text"
-                    value={formData.cover_url || ''}
-                    onChange={(e) => handleChange('cover_url', e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
-                    placeholder="https://..."
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">URL do Background</label>
-                  <input
-                    type="text"
-                    value={formData.background_url || ''}
-                    onChange={(e) => handleChange('background_url', e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-
               {/* Interest + Must Test + Platform (same row) */}
               <div className="grid grid-cols-3 gap-2">
                 {/* Interest */}
@@ -505,6 +496,29 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                 <HardDrive className="w-5 h-5 text-emerald-400" />
                 <h3 className="text-white font-bold text-sm">Configuração de Instalação</h3>
               </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">URL da Capa</label>
+                  <input
+                    type="text"
+                    value={formData.cover_url || ''}
+                    onChange={(e) => handleChange('cover_url', e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
+                    placeholder="https://..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">URL do Background</label>
+                  <input
+                    type="text"
+                    value={formData.background_url || ''}
+                    onChange={(e) => handleChange('background_url', e.target.value)}
+                    className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
               <div className="space-y-1.5">
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Instalação</label>
                 <div className="flex items-center space-x-3">
@@ -616,11 +630,13 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                     return (
                       <button
                         key={type}
+                        type="button"
+                        disabled={isSinglePlayer}
                         onClick={() => toggleCoopType(type)}
                         className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition ${
                           selected
                             ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400'
-                            : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'
+                            : `bg-zinc-950 border-zinc-800 text-zinc-400 ${isSinglePlayer ? 'cursor-not-allowed opacity-40' : 'hover:border-zinc-700 hover:text-white'}`
                         }`}
                       >
                         {type}
@@ -634,25 +650,20 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                 <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Modo de jogo</label>
                 <div className="flex flex-wrap gap-1.5">
                   {['Cooperativo', 'Competitivo/Versus'].map(mode => (
-                    <button key={mode} type="button" onClick={() => setFormData(prev => ({ ...prev, multiplayer_mode: (prev.multiplayer_mode || []).includes(mode) ? prev.multiplayer_mode.filter(value => value !== mode) : [...(prev.multiplayer_mode || []), mode] }))}
-                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition ${(formData.multiplayer_mode || []).includes(mode) ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400' : 'bg-zinc-950 border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-white'}`}>
+                    <button key={mode} type="button" disabled={isSinglePlayer} onClick={() => setFormData(prev => ({ ...prev, multiplayer_mode: (prev.multiplayer_mode || []).includes(mode) ? prev.multiplayer_mode.filter(value => value !== mode) : [...(prev.multiplayer_mode || []), mode] }))}
+                      className={`text-[11px] font-bold px-3 py-1.5 rounded-lg border transition ${(formData.multiplayer_mode || []).includes(mode) ? 'bg-indigo-600/10 border-indigo-500 text-indigo-400' : `bg-zinc-950 border-zinc-800 text-zinc-400 ${isSinglePlayer ? 'cursor-not-allowed opacity-40' : 'hover:border-zinc-700 hover:text-white'}`}`}>
                       {mode}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">Tela</label>
-                <select
-                  value={formData.coop_screen_type || 'Tela Compartilhada'}
-                  onChange={(e) => handleChange('coop_screen_type', e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-800 focus:border-indigo-500 rounded-lg px-3 py-2 text-sm text-white outline-none transition"
-                >
-                  <option value="Tela Compartilhada">Tela Compartilhada</option>
-                  <option value="Tela Dividida">Tela Dividida</option>
-                </select>
-              </div>
+              {isSinglePlayer && (
+                <p className="text-xs text-zinc-500">
+                  Tipos e modos multiplayer não se aplicam a jogos de um jogador.
+                </p>
+              )}
+
             </div>
           )}
 
@@ -714,28 +725,6 @@ export default function GameModal({ games, game, isOpen, onClose, isEditing: _, 
                   />
                   {errors.finish_date && <p className="text-red-400 text-xs mt-1">{errors.finish_date}</p>}
                 </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-zinc-400 text-xs font-semibold uppercase tracking-wider">
-                  Vontade de Rejogar
-                  <span className="text-red-400 ml-1">*</span>
-                </label>
-                <div className={`flex items-center space-x-1 bg-zinc-950 border p-2 rounded-lg ${
-                  errors.replay_score ? 'border-red-500 ring-1 ring-red-500/30' : 'border-zinc-800'
-                }`}>
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <button
-                      key={star}
-                      onClick={() => handleChange('replay_score', star)}
-                      className={`text-lg transition ${star <= (formData.replay_score || 0) ? 'text-amber-400 scale-110' : 'text-zinc-700 hover:text-zinc-500'}`}
-                    >
-                      ★
-                    </button>
-                  ))}
-                  <span className="text-xs text-zinc-500 ml-auto">{formData.replay_score || '?'}/5</span>
-                </div>
-                {errors.replay_score && <p className="text-red-400 text-xs mt-1">{errors.replay_score}</p>}
               </div>
 
               <div className="space-y-1.5">

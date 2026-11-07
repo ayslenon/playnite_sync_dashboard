@@ -17,9 +17,9 @@ const DEFAULT_FILTERS = {
   minInterest: 0,
   maxInterest: 0,
   coopType: 'all',
-  coopCategories: ['Sofá', 'Online', 'LAN', '__unspecified__'],
-  coopPlayerCounts: ['2 Jogadores', 'Até 4 Jogadores', 'Mais de 4 Jogadores'],
-  multiplayerModes: ['Cooperativo', 'Competitivo/Versus', '__unspecified__'],
+  coopCategories: [],
+  coopPlayerCounts: [],
+  multiplayerModes: [],
   genres: [],
   mustTestOnly: false,
   favoriteOnly: false,
@@ -176,16 +176,14 @@ export default function Library() {
   }, [filters.hds, hdPopupOpen]);
 
   const hasMissingData = (game) => {
-    if (!game.cover_url) return true;
-    if (!game.hltb_main) return true;
+    if (!game.title?.trim()) return true;
     if (!game.genres?.length) return true;
-    if (!game.notes) return true;
     if (!game.platform) return true;
+    if (!game.interest_rating) return true;
     if (game.gameplay_status === 'Finalizado') {
       if (game.score == null) return true;
-      if (!game.finish_hours) return true;
+      if (game.finish_hours == null) return true;
       if (!game.finish_date) return true;
-      if (!game.replay_score || game.replay_score === 0) return true;
     }
     return false;
   };
@@ -216,14 +214,17 @@ export default function Library() {
         if (!game.coop_players || game.coop_players === '1 Jogador') return false;
         const categories = game.coop_type || [];
         const modes = game.multiplayer_mode || [];
-        const matchesPlayers = filters.coopPlayerCounts.includes(game.coop_players);
-        const matchesCategory = categories.length
-          ? categories.some(category => filters.coopCategories.includes(category))
-          : filters.coopCategories.includes('__unspecified__');
-        const matchesMode = modes.length
-          ? modes.some(mode => filters.multiplayerModes.includes(mode))
-          : filters.multiplayerModes.includes('__unspecified__');
-        if (!matchesPlayers && !matchesCategory && !matchesMode) return false;
+        const matchesPlayers = filters.coopPlayerCounts.length === 0
+          || filters.coopPlayerCounts.includes(game.coop_players);
+        const matchesCategory = filters.coopCategories.length === 0
+          || (categories.length
+            ? categories.some(category => filters.coopCategories.includes(category))
+            : filters.coopCategories.includes('__unspecified__'));
+        const matchesMode = filters.multiplayerModes.length === 0
+          || (modes.length
+            ? modes.some(mode => filters.multiplayerModes.includes(mode))
+            : filters.multiplayerModes.includes('__unspecified__'));
+        if (!matchesPlayers || !matchesCategory || !matchesMode) return false;
       }
       if (filters.genres.length > 0) {
         const hasGenre = filters.genres.some(g => (game.genres || []).includes(g));

@@ -239,7 +239,9 @@ export default function FilterBar({
                 </label>
               ))}
             </div>
-            <p className="text-zinc-500 text-xs">Jogos que correspondam a qualquer opção marcada aparecem nos resultados.</p>
+            <p className="text-zinc-500 text-xs leading-relaxed">
+              Dentro de cada grupo vale qualquer opção marcada. Entre grupos, o jogo precisa atender a todos. Sem marcação, o grupo não restringe.
+            </p>
           </div>
         )}
       </div>
@@ -278,7 +280,7 @@ export default function FilterBar({
 
   // Desktop: always visible sidebar
   const desktopFilters = (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-5 h-fit xl:sticky xl:top-[72px] hidden xl:block w-64 flex-shrink-0">
+    <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-5 shadow-lg space-y-5 h-fit xl:sticky xl:top-[72px] xl:max-h-[calc(100vh-88px)] xl:overflow-y-auto xl:overscroll-contain hidden xl:block w-64 flex-shrink-0">
       <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
         <div className="flex items-center space-x-2 text-white font-semibold">
           <SlidersHorizontal className="w-5 h-5 text-indigo-400" />

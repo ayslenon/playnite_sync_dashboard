@@ -26,7 +26,6 @@ que o servidor esteja ligado.
   "storage_device": { "id": 1, "name": "SSD Windows" },
   "gameplay_status": "Backlog",
   "interest_rating": 5,
-  "replay_score": null,
   "score": null,
   "must_test": false,
   "finish_hours": null,
@@ -36,7 +35,6 @@ que o servidor esteja ligado.
   "hltb_full": 151,
   "coop_players": "1 Jogador",
   "coop_type": [],
-  "coop_screen_type": "Tela Compartilhada",
   "multiplayer_mode": ["Cooperativo", "Competitivo/Versus"],
   "input_recommendation": "Controle",
   "playtime_seconds": 15622,
@@ -84,7 +82,6 @@ Unix e URLs antigas antes de persistir os assets do Playnite; o banco não deve 
 | `gameplay_status` | `string` | `Backlog`, `Jogando`, `Finalizado`, `Abandonado` |
 | `score` | `string` \| `null` | Nota pessoal. Ex: `"9/10"`, `"8.5"` |
 | `interest_rating` | `number` | Vontade de jogar 1-5. Exibido como estrelas |
-| `replay_score` | `number` \| `null` | Vontade de rejogar 1-5. Preenchido apenas se finalizado |
 | `must_test` | `boolean` | Marca "A Testar". Exibe badge âmbar |
 
 ### Instalação
@@ -111,7 +108,6 @@ Unix e URLs antigas antes de persistir os assets do Playnite; o banco não deve 
 | `coop_players` | `string` | `"1 Jogador"`, `"2 Jogadores"`, `"Até 4 Jogadores"`, `"Mais de 4 Jogadores"` |
 | `coop_type` | `string[]` | Array: `"Sofá"`, `"Online"`, `"LAN"` |
 | `multiplayer_mode` | `string[]` | `"Cooperativo"`, `"Competitivo/Versus"` |
-| `coop_screen_type` | `string` | `"Tela Compartilhada"`, `"Tela Dividida"` |
 
 ### Input
 
@@ -137,7 +133,7 @@ Unix e URLs antigas antes de persistir os assets do Playnite; o banco não deve 
 | Condição | Campos validados |
 |----------|------------------|
 | **Sempre** | `title`, `genres` (≥1), `platform`, `interest_rating` (1-5) |
-| **Se `gameplay_status === "Finalizado"`** | `score`, `finish_hours`, `finish_date`, `replay_score` (1-5) |
+| **Se `gameplay_status === "Finalizado"`** | `score`, `finish_hours`, `finish_date` |
 
 ## Mapeamento para API
 
